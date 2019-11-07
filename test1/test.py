@@ -27,7 +27,7 @@ def dealProgrammer(Path):
     for line in f.readlines():
         lineBuilder = []
         line = line.strip('\n')
-        line=line.strip(' ')
+        line = line.strip(' ')
         line = line.split(' ')
         for item in line:  # 遍历每个字符串
             if item in ReservedWords:
@@ -92,10 +92,27 @@ def is_number(s):
     return True
 
 
+def isNumber(index, data):
+    if data[index][1].isdigit():
+        return True
+    elif data[index][1] == '.':
+        if data[index + 1][1].isdigit():
+            return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
     builder = []
     builder = dealProgrammer('data.txt')
     for i in builder:
-        for i1 in i:
-            print(i1, end="   ")
+        string = ''
+        for a in range(len(i)):
+            if isNumber(a, i):
+                string += i[a][1]
+            else:
+                if string!='':
+                    print((1, string), end="  ")
+                    string = ''
+                print(i[a], end='  ')
         print()
