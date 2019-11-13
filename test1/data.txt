@@ -16,7 +16,7 @@ int main()
          if(j>=i/2)
            {
              count++;
-            printf("%d ",i);
+            printf("%d",i);
            }
  }
 printf("count=%d\n",count);

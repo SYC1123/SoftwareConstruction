@@ -134,18 +134,19 @@ def dealNumber(builder):
 
 def dealString(builder):
     for X in builder:
-        id1 = [i for i, x in enumerate(X) if x[1] == '"']  # 查找有 " 的元素下标位置
-        dellist = []
-        for i in range(0, len(id1), 2):
-            string = ''
-            for delindex in range(id1[i] + 1, id1[i + 1]):
-                string = string + X[delindex][1]
-                if delindex != id1[i] + 1:
-                    dellist.append(delindex)
-            X[id1[i] + 1] = (2, string)
-        index = builder.index(X)
-        a = [X[x] for x in range(len(X)) if (x not in dellist)]
-        builder[index] = a
+        if X[0][1]!="printf":
+            id1 = [i for i, x in enumerate(X) if x[1] == '"']  # 查找有 " 的元素下标位置
+            dellist = []
+            for i in range(0, len(id1), 2):
+                string = ''
+                for delindex in range(id1[i] + 1, id1[i + 1]):
+                    string = string + X[delindex][1]
+                    if delindex != id1[i] + 1:
+                        dellist.append(delindex)
+                X[id1[i] + 1] = (2, string)
+            index = builder.index(X)
+            a = [X[x] for x in range(len(X)) if (x not in dellist)]
+            builder[index] = a
 
 
 if __name__ == '__main__':
