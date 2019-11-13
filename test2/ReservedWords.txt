@@ -1,0 +1,1 @@
+int,long,short,float,double,char,unsigned,signed,const,void,volatile,enum,struct,union,if,else,goto,switch,case,do,while,for,continue,break,return,default,typedef,auto,register,extern,static,sizeof
