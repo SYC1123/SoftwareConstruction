@@ -1,24 +1,21 @@
-# 标识符 字母A-Z,a-z,0-9,_
-import re
+Identifier = 1  # 标识符 字母A-Z,a-z,0-9,_
 
-Identifier = 1
-# 常数，定点小数
-Constant = 2
-# 保留字3
+Constant = 2  # 常数，定点小数
+
 ReservedWords = ['int', 'long', 'short', 'float', 'double', 'char', 'unsigned', 'signed', 'const', 'void'
     , 'volatile'
     , 'enum', 'struct', 'union', 'if', 'else'
     , 'goto', 'switch', 'case', 'do', 'while', 'for'
     , 'continue', 'break', 'return'
-    , 'default', 'typedef', 'auto', 'register', 'extern', 'static', 'sizeof']
-# 运算符4
+    , 'default', 'typedef', 'auto', 'register', 'extern', 'static', 'sizeof']  # 保留字3
+
 TheOperator = {'+': 0, '-': 0, '*': 0, '/': 0, '++': 0, '--': 0, '%': 0, '|': 0, '&': 0, '^': 0, '#': 0, '<': 0, '>': 0,
-               '=': 0}
-# 界符5
+               '=': 0}  # 运算符4
+
 RangeFlag = {'(': 0, ')': 0, '[': 0, ']': 0, '{': 0, '}': 0, '.': 0, ',': 0, ';': 0, '<': 0, '>': 0, "'": 0, '\\': 0,
-             '\"': 0}
-# 数字
-Number = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}
+             '\"': 0}  # 界符5
+
+Number = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0}  # 数字
 
 
 def dealProgrammer(Path):
@@ -78,7 +75,10 @@ def addPart(nowPosition, beforPosition, lineBuilder, item):
         beforPosition += 1
     if beforPosition != nowPosition:
         if beforPosition + 1 != nowPosition:
-            lineBuilder.append((1, item[beforPosition + 1:nowPosition]))
+            if item[beforPosition + 1:nowPosition] in ReservedWords:  # 判断是否是保留字
+                lineBuilder.append((3, item[beforPosition + 1:nowPosition]))
+            else:
+                lineBuilder.append((1, item[beforPosition + 1:nowPosition]))
 
 
 def is_number(s):
@@ -102,17 +102,61 @@ def isNumber(index, data):
         return False
 
 
-if __name__ == '__main__':
-    builder = []
-    builder = dealProgrammer('data.txt')
+def dealNumber(builder):
     for i in builder:
         string = ''
+        deleteallindex = {}
+        deleteindex = []  # 记录要删除的下标
         for a in range(len(i)):
             if isNumber(a, i):
                 string += i[a][1]
+                deleteindex.append(a)
             else:
-                if string!='':
-                    print((1, string), end="  ")
+                if string != '':
+                    deleteallindex.update({str(deleteindex): string})
                     string = ''
-                print(i[a], end='  ')
-        print()
+                    deleteindex = []
+        dellist = []
+        for delallindex in deleteallindex.keys():
+            p = eval(delallindex)
+            if len(p) != 1:
+                i[p[0]] = (1, deleteallindex[delallindex])
+                dellist += p[1:]
+        i = [i[x] for x in range(len(i)) if (x not in dellist)]
+        dellist = []
+        deleteallindex = {}
+
+
+if __name__ == '__main__':
+    builder = []
+    builder = dealProgrammer('data.txt')
+    # dealNumber(builder)
+    for i in builder:
+        # print(i)
+        string = ''
+        deleteallindex = {}
+        deleteindex = []  # 记录要删除的下标
+        for a in range(len(i)):
+            if isNumber(a, i):
+                string += i[a][1]
+                deleteindex.append(a)
+            else:
+                if string != '':
+                    deleteallindex.update({str(deleteindex): string})
+                    string = ''
+                    deleteindex = []
+        dellist = []
+        for delallindex in deleteallindex.keys():
+            p = eval(delallindex)
+            if len(p) != 1:
+                i[p[0]] = (1, deleteallindex[delallindex])
+                dellist += p[1:]
+        print(i)
+        i = [i[x] for x in range(len(i)) if (x not in dellist)]
+        print(i)
+        # dellist = []
+        # deleteallindex = {}
+    # for i in builder:
+    #     for j in i:
+    #         print(j, end="  ")
+    #     print()
