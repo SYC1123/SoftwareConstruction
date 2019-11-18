@@ -56,7 +56,7 @@ if __name__ == '__main__':
     builder = dealProgrammer('data.txt')
     dealNumber(builder)
     dealString(builder)
-    f=open('Result.txt','w')
+    f = open('Result.txt', 'w')
     for x in builder:
         ResultPart = []
         for j in x:
@@ -109,4 +109,10 @@ if __name__ == '__main__':
         f.writelines(str(ResultPart))
         f.writelines('\n')
     print(Result)
+    f.close()
+    f = open('Identifier.txt', 'w')
+    f.writelines(str(Identifier))
+    f.close()
+    f = open('Constant.txt', 'w')
+    f.writelines(str(Constant))
     f.close()
