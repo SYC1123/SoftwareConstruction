@@ -1,2 +1,2 @@
-s = '\tabc\t123\tisk'
-print(s.replace('\t', ''))
+st='AB'
+print(st.replace('A',''))
