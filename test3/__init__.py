@@ -1,10 +1,23 @@
-def go(old_first_size, new_first_size):
+from copy import deepcopy
+
+
+def first_go(old_first_size, new_first_size):
     for key in old_first_size:
         if old_first_size[key] != new_first_size[key]:
             # old=new
             exchange(old_first_size, new_first_size)
             return True
     return False
+
+
+def follow_go(follow):
+    for key in follow.keys():
+        if len(follow[key]) == 0:
+            return True
+    return False
+
+def has_next(str,index):
+
 
 
 def exchange(old_first_size, new_first_size):
@@ -38,6 +51,9 @@ if __name__ == '__main__':
             old_first_size[item[:item.index('-')]] = 0
             new_first_size[item[:item.index('-')]] = 0
             first[item[:item.index('-')]] = []
+            follow[item[:item.index('-')]] = []
+            if item[:item.index('-')] == 'E':
+                follow['E'].append('#')
         else:
             init_set[item[:item.index('-')]].append(item[item.index('>') + 1:])
             temporary_set[item[:item.index('-')]] = [item[item.index('>') + 1:]]
@@ -76,6 +92,11 @@ if __name__ == '__main__':
     该位置可以看文法规则的初始集合
     '''
     # print(init_set)
+    '''
+    保存好文法规则的初始集合用于计算follow集
+    '''
+    follow_init_set = {}
+    follow_init_set = deepcopy(init_set)
     for key in init_set:
         for value in init_set[key]:
             if value[0].isupper():
@@ -84,24 +105,28 @@ if __name__ == '__main__':
                 first[key].append(value[0])
                 new_first_size[key] = new_first_size[key] + 1
     # print(first)
-    while go(old_first_size, new_first_size):
+    # 计算first集
+    while first_go(old_first_size, new_first_size):
         # 下面操作new_first_size
         for key in init_set.keys():
-            for value in init_set[key]:
-                if value[0].isupper():
+            for index in range(0, len(init_set[key])):  # 下标
+                if init_set[key][index][0].isupper():
                     # 非终结符
-                    if value[0] in ε_set:
+                    if init_set[key][index][0] in ε_set:
                         # 开头的非终结符能推出空
-                        first[key] = first[key] + first[value[0]]
+                        first[key] = first[key] + first[init_set[key][index][0]]
                         first[key] = list(set(first[key]))
                         new_first_size[key] = len(first[key])
-                        if len(value) == 1:
-                            value = 'ε'
+                        if len(init_set[key][index]) == 1:
+                            s = list(init_set[key][index])
+                            s[0] = 'ε'
+                            init_set[key][index] = ''.join(s)
                         else:
-                            value = value[1:]
+                            init_set[key][index] = init_set[key][index].lstrip(init_set[key][index][0])
+                            # print(init_set[key][index])
                     else:
                         # 开头的非终结符不能推出空
-                        first[key] = first[key] + first[value[0]]
+                        first[key] = first[key] + first[init_set[key][index][0]]
                         first[key] = list(set(first[key]))
                         new_first_size[key] = len(first[key])
                 else:
@@ -115,3 +140,12 @@ if __name__ == '__main__':
     最终first集
     '''
     print(first)
+    # 计算follow集
+    print(follow_init_set)
+    # print(follow)
+    for key in follow_init_set:  # 计算key的follow集
+        for value in follow_init_set[key]:
+            for k in follow_init_set:
+                for var in follow_init_set[k]:
+                    index = var.find(key)
+                    if index != -1:
