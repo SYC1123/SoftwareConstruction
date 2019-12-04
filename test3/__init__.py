@@ -142,40 +142,56 @@ if __name__ == '__main__':
     '''
     最终first集
     '''
-    # print(first)
+    print('first集：', first)
 
     '''
      计算follow集
     '''
-    print(follow_init_set)
+    # print(follow_init_set)
     # print(follow)
     while continue_go(old_follow_size, new_follow_size):
-        for key in follow_init_set:  # 计算key的follow集
-            for value in follow_init_set[key]:
-                for k in follow_init_set:
-                    for i in range(0, len(follow_init_set[k])):
-                        index = follow_init_set[k][i].find(key)
-                        if index != -1:
-                            if has_next(follow_init_set[k][i], index):  # 查找的字符后面有follow
-                                var = follow_init_set[k][i][index + 1]
-                                if var.isupper():  # 非终结符
-                                    follow[key] = follow[key] + first[var]
+        for p in range(0, 2):
+            for key in follow_init_set:  # 计算key的follow集
+                for value in follow_init_set[key]:
+                    for k in follow_init_set:
+                        for i in range(0, len(follow_init_set[k])):
+                            index = follow_init_set[k][i].find(key)
+                            if index != -1:
+                                if has_next(follow_init_set[k][i], index):  # 查找的字符后面有follow
+                                    index = index + 1
+                                    var = follow_init_set[k][i][index]
+                                    if var.isupper():  # 非终结符
+                                        follow[key] = follow[key] + first[var]
+                                        follow[key] = list(set(follow[key]))
+                                        new_follow_size[key] = len(follow[key])
+                                        if var in ε_set and has_next(follow_init_set[k][i], index) == False:
+                                            follow[key] = follow[key] + follow[k]
+                                            follow[key] = list(set(follow[key]))
+                                            new_follow_size[key] = len(follow[key])
+                                        while var in ε_set and has_next(follow_init_set[k][i],
+                                                                        index):  # 把后面非空的follow全加进去
+                                            index = index + 1
+                                            var = follow_init_set[k][i][index]
+                                            follow[key] = follow[key] + first[var]
+                                            follow[key] = list(set(follow[key]))
+                                            new_follow_size[key] = len(follow[key])
+                                            if var in ε_set and has_next(follow_init_set[k][i], index) == False:
+                                                follow[key] = follow[key] + follow[k]
+                                                follow[key] = list(set(follow[key]))
+                                                new_follow_size[key] = len(follow[key])
+                                            # follow_init_set[k][i] = follow_init_set[k][i].replace(var, '')  # 把该符号去掉
+                                    else:  # 终结符
+                                        if var not in follow[key]:
+                                            follow[key].append(var)
+                                            new_follow_size[key] = len(follow[key])
+                                else:
+                                    follow[key] = follow[key] + follow[k]
                                     follow[key] = list(set(follow[key]))
+                                    # print(key, k, follow[key], follow[k])
                                     new_follow_size[key] = len(follow[key])
-                                    if var in ε_set:
-                                        follow_init_set[k][i] = follow_init_set[k][i].replace(var, '')  # 把该符号去掉
-                                else:  # 终结符
-                                    follow[key].append(var)
-                                    new_follow_size[key] = len(follow[key])
-                            else:
-                                follow[key] = follow[key] + follow[k]
-                                follow[key] = list(set(follow[key]))
-                                new_follow_size[key] = len(follow[key])
-        print(new_follow_size)
-        # if continue_go(new_follow_size, new_follow_size) == 0:
-        #     break
-print(new_follow_size)
-print(old_follow_size)
-continue_go(old_follow_size, new_follow_size)
-# print(follow_init_set)
-print(follow)
+            # print(follow_init_set)
+    for key in follow:
+        for item in follow[key]:
+            if 'ε' in item:
+                follow[key].remove('ε')
+    print('follow集：', follow)

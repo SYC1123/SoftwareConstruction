@@ -1,2 +1,5 @@
 st='AB'
-print(st.replace('A',''))
+sta=st
+print(st,sta)
+sta='sdf'
+print(st,sta)
