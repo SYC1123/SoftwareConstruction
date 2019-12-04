@@ -195,3 +195,4 @@ if __name__ == '__main__':
             if 'ε' in item:
                 follow[key].remove('ε')
     print('follow集：', follow)
+    print()
