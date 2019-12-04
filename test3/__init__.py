@@ -1,28 +1,26 @@
 from copy import deepcopy
 
 
-def first_go(old_first_size, new_first_size):
-    for key in old_first_size:
-        if old_first_size[key] != new_first_size[key]:
+def continue_go(old_size, new_size):
+    for key in old_size:
+        if old_size[key] != new_size[key]:
             # old=new
-            exchange(old_first_size, new_first_size)
+            exchange(old_size, new_size)
             return True
     return False
 
 
-def follow_go(follow):
-    for key in follow.keys():
-        if len(follow[key]) == 0:
-            return True
-    return False
-
-def has_next(str,index):
-
+def has_next(str, index):
+    try:
+        a = str[index + 1]
+        return True
+    except:
+        return False
 
 
-def exchange(old_first_size, new_first_size):
-    for key in old_first_size:
-        old_first_size[key] = new_first_size[key]
+def exchange(old_size, new_size):
+    for key in old_size:
+        old_size[key] = new_size[key]
 
 
 if __name__ == '__main__':
@@ -31,6 +29,8 @@ if __name__ == '__main__':
     old_first_size = {}  # 旧的每个符号first集的大小
     new_first_size = {}  # 新的每个符号first集的大小
     follow = {}  # follow集
+    old_follow_size = {}  # 旧的每个符号的follow集的大小
+    new_follow_size = {}  # 新的每个符号的follow集的大小
     init_set = {}  # 文法规则的初始集合
     temporary_set = {}  # 文法规则的初始集合的临时集合
     ε_set = []  # 能产生ε的符号
@@ -51,6 +51,8 @@ if __name__ == '__main__':
             old_first_size[item[:item.index('-')]] = 0
             new_first_size[item[:item.index('-')]] = 0
             first[item[:item.index('-')]] = []
+            old_follow_size[item[:item.index('-')]] = 0
+            new_follow_size[item[:item.index('-')]] = 1
             follow[item[:item.index('-')]] = []
             if item[:item.index('-')] == 'E':
                 follow['E'].append('#')
@@ -97,6 +99,7 @@ if __name__ == '__main__':
     '''
     follow_init_set = {}
     follow_init_set = deepcopy(init_set)
+
     for key in init_set:
         for value in init_set[key]:
             if value[0].isupper():
@@ -106,7 +109,7 @@ if __name__ == '__main__':
                 new_first_size[key] = new_first_size[key] + 1
     # print(first)
     # 计算first集
-    while first_go(old_first_size, new_first_size):
+    while continue_go(old_first_size, new_first_size):
         # 下面操作new_first_size
         for key in init_set.keys():
             for index in range(0, len(init_set[key])):  # 下标
@@ -131,21 +134,48 @@ if __name__ == '__main__':
                         new_first_size[key] = len(first[key])
                 else:
                     # 终结符
-                    first[key].append(value[0])
+                    first[key].append(init_set[key][index][0])
                     first[key] = list(set(first[key]))
                     new_first_size[key] = len(first[key])
-                # print(value, end=" ")
+            # print(value, end=" ")
             # print()
     '''
     最终first集
     '''
-    print(first)
-    # 计算follow集
+    # print(first)
+
+    '''
+     计算follow集
+    '''
     print(follow_init_set)
     # print(follow)
-    for key in follow_init_set:  # 计算key的follow集
-        for value in follow_init_set[key]:
-            for k in follow_init_set:
-                for var in follow_init_set[k]:
-                    index = var.find(key)
-                    if index != -1:
+    while continue_go(old_follow_size, new_follow_size):
+        for key in follow_init_set:  # 计算key的follow集
+            for value in follow_init_set[key]:
+                for k in follow_init_set:
+                    for i in range(0, len(follow_init_set[k])):
+                        index = follow_init_set[k][i].find(key)
+                        if index != -1:
+                            if has_next(follow_init_set[k][i], index):  # 查找的字符后面有follow
+                                var = follow_init_set[k][i][index + 1]
+                                if var.isupper():  # 非终结符
+                                    follow[key] = follow[key] + first[var]
+                                    follow[key] = list(set(follow[key]))
+                                    new_follow_size[key] = len(follow[key])
+                                    if var in ε_set:
+                                        follow_init_set[k][i] = follow_init_set[k][i].replace(var, '')  # 把该符号去掉
+                                else:  # 终结符
+                                    follow[key].append(var)
+                                    new_follow_size[key] = len(follow[key])
+                            else:
+                                follow[key] = follow[key] + follow[k]
+                                follow[key] = list(set(follow[key]))
+                                new_follow_size[key] = len(follow[key])
+        print(new_follow_size)
+        # if continue_go(new_follow_size, new_follow_size) == 0:
+        #     break
+print(new_follow_size)
+print(old_follow_size)
+continue_go(old_follow_size, new_follow_size)
+# print(follow_init_set)
+print(follow)
