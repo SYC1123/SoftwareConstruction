@@ -1,5 +1,8 @@
 from copy import deepcopy
 
+import xlrd as xlrd
+import xlwt as xlwt
+
 
 def continue_go(old_size, new_size):
     for key in old_size:
@@ -55,6 +58,20 @@ def getfirst(string):
                 first_part.append(var)
                 first_part = list(set(first_part))
                 return first_part
+
+
+def getendsymbol(original_set):
+    end_symbol = []
+    for key in original_set:
+        for value in original_set[key]:
+            for var in value:
+                if var.isupper() or var == 'ε':
+                    end_symbol = end_symbol + []
+                else:
+                    end_symbol.append(var)
+    end_symbol = list(set(end_symbol))
+    end_symbol.append('#')
+    return end_symbol
 
 
 if __name__ == '__main__':
@@ -259,3 +276,50 @@ if __name__ == '__main__':
     for key in select:
         print('select(%s)=' % key, select[key])
     print('--------------------------------------------------------------')
+    '''
+    构造预测分析表
+    '''
+    writebook = xlwt.Workbook()
+    test = writebook.add_sheet('预测分析表')
+    end_symbol = getendsymbol(init_set)
+    # print(end_symbol)
+    for j in range(0, len(end_symbol)):
+        test.write(0, j + 1, end_symbol[j])
+    for i, key in zip(range(0, len(first)), first.keys()):
+        test.write(i + 1, 0, str(key))
+    writebook.save('grammerTable.xls')
+    readbook = xlrd.open_workbook('grammerTable.xls')
+    sheet = readbook.sheet_by_index(0)
+    rows = sheet.row_values(0)  # 返回第1行，终结符
+    cols = sheet.col_values(0)  # 返回第一列，非终结符
+    for key in select.keys():
+        var = key[:key.index('-')]
+        row = cols.index(var)
+        for value in select[key]:
+            col = rows.index(value)
+            test.write(row, col, key[key.index('-'):])
+    writebook.save('grammerTable.xls')
+    print('预测分析表构建完成')
+    print('--------------------------------------------------------------')
+    remain_string = []  # 剩余字符串
+    analysis_formula = []  # 分析式
+    st = input("请输入表达式")
+    for var in st:
+        remain_string.append(var)
+    remain_string.append('#')
+    analysis_formula.append('#')
+    analysis_formula.append('E')
+    remain = remain_string[0]
+    analysis = analysis_formula[-1]
+    while analysis.__eq__('#') + 1 != 2 and remain.__eq__('#') + 1 != 2:  # 都不是#
+        if analysis.__eq__(remain):  # 相等
+            print('接受')
+            analysis_formula.remove(analysis)
+            remain_string.remove(remain)
+            analysis = analysis_formula[-1]
+            remain = remain_string[0]
+        else:  # 不相等
+            if remain.__eq__('#'):
+                print('错误')
+                break
+            else:
