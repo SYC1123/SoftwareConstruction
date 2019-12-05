@@ -63,7 +63,7 @@ if __name__ == '__main__':
     '''
     该位置可以看文法规则的初始集合
     '''
-    # print(init_set)
+    print(init_set)
     # 构造空集的临时表，用于计算后续的空集
     for item in init_set:
         if 'ε' in init_set[item]:
@@ -142,8 +142,11 @@ if __name__ == '__main__':
     '''
     最终first集
     '''
-    print('first集：', first)
-
+    print('--------------------------------------------------------------')
+    # print('first集：', first)
+    for key in first:
+        print('first(%c)' % key, first[key])
+    print('--------------------------------------------------------------')
     '''
      计算follow集
     '''
@@ -194,5 +197,11 @@ if __name__ == '__main__':
         for item in follow[key]:
             if 'ε' in item:
                 follow[key].remove('ε')
-    print('follow集：', follow)
-    print()
+    '''
+    最终的follow集
+    '''
+    # print('follow集：', follow)
+    for key in follow:
+        print('follow(%c)' % key, follow[key])
+    print('--------------------------------------------------------------')
+    
