@@ -23,6 +23,40 @@ def exchange(old_size, new_size):
         old_size[key] = new_size[key]
 
 
+def isnull(string):
+    count = 0
+    if string == 'ε':
+        return True
+    else:
+        for var in string:
+            if var.isupper() and var in ε_set:
+                count = count + 1
+        if count == len(string):
+            return True
+        else:
+            return False
+
+
+def getfirst(string):
+    first_part = []
+    if string == 'ε':
+        return first_part
+    else:
+        for var in string:
+            if var.isupper():
+                if var in ε_set:
+                    first_part = first_part + first[var]
+                    first_part = list(set(first_part))
+                else:
+                    first_part = first_part + first[var]
+                    first_part = list(set(first_part))
+                    return first_part
+            else:
+                first_part.append(var)
+                first_part = list(set(first_part))
+                return first_part
+
+
 if __name__ == '__main__':
     grammar_rules = []  # 文法规则
     first = {}  # first集
@@ -31,6 +65,7 @@ if __name__ == '__main__':
     follow = {}  # follow集
     old_follow_size = {}  # 旧的每个符号的follow集的大小
     new_follow_size = {}  # 新的每个符号的follow集的大小
+    select = {}  # select集
     init_set = {}  # 文法规则的初始集合
     temporary_set = {}  # 文法规则的初始集合的临时集合
     ε_set = []  # 能产生ε的符号
@@ -38,6 +73,7 @@ if __name__ == '__main__':
     for line in f.readlines():
         line = line.strip('\n')
         grammar_rules.append(line)
+        select[line] = []
     f.close()
     ''''
     该位置可以看文法规则
@@ -95,10 +131,12 @@ if __name__ == '__main__':
     '''
     # print(init_set)
     '''
-    保存好文法规则的初始集合用于计算follow集
+    保存好文法规则的初始集合用于计算follow集、select集
     '''
     follow_init_set = {}
     follow_init_set = deepcopy(init_set)
+    select_init_set = {}
+    select_init_set = deepcopy(init_set)
 
     for key in init_set:
         for value in init_set[key]:
@@ -145,7 +183,7 @@ if __name__ == '__main__':
     print('--------------------------------------------------------------')
     # print('first集：', first)
     for key in first:
-        print('first(%c)' % key, first[key])
+        print('first(%c)=' % key, first[key])
     print('--------------------------------------------------------------')
     '''
      计算follow集
@@ -202,6 +240,22 @@ if __name__ == '__main__':
     '''
     # print('follow集：', follow)
     for key in follow:
-        print('follow(%c)' % key, follow[key])
+        print('follow(%c)=' % key, follow[key])
     print('--------------------------------------------------------------')
-    
+    '''
+    计算select集
+    '''
+    # print(select)
+    for key in select:
+        if isnull(key[key.index('>') + 1:]):
+            # 能推出空
+            select[key] = getfirst(key[key.index('>') + 1:]) + follow[key[:key.index('-')]]
+        else:
+            # 推不出空
+            select[key] = getfirst(key[key.index('>') + 1:])
+    for key in select:
+        if 'ε' in select[key]:
+            select[key].remove('ε')
+    for key in select:
+        print('select(%s)=' % key, select[key])
+    print('--------------------------------------------------------------')
