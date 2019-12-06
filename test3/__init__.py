@@ -289,7 +289,7 @@ if __name__ == '__main__':
         test.write(i + 1, 0, str(key))
     writebook.save('grammerTable.xls')
     readbook = xlrd.open_workbook('grammerTable.xls')
-    sheet = readbook.sheet_by_index(0)
+    sheet = readbook.sheet_by_name('预测分析表')
     rows = sheet.row_values(0)  # 返回第1行，终结符
     cols = sheet.col_values(0)  # 返回第一列，非终结符
     for key in select.keys():
@@ -297,13 +297,14 @@ if __name__ == '__main__':
         row = cols.index(var)
         for value in select[key]:
             col = rows.index(value)
-            test.write(row, col, key[key.index('-'):])
+            test.write(row, col, key[key.index('>') + 1:])
     writebook.save('grammerTable.xls')
     print('预测分析表构建完成')
     print('--------------------------------------------------------------')
     remain_string = []  # 剩余字符串
     analysis_formula = []  # 分析式
-    st = input("请输入表达式")
+    # st = input("请输入表达式")
+    st = 'i+i*i'
     for var in st:
         remain_string.append(var)
     remain_string.append('#')
@@ -311,15 +312,50 @@ if __name__ == '__main__':
     analysis_formula.append('E')
     remain = remain_string[0]
     analysis = analysis_formula[-1]
-    while analysis.__eq__('#') + 1 != 2 and remain.__eq__('#') + 1 != 2:  # 都不是#
+    f = open('Result.txt', 'w')
+    # f.writelines('步骤\t\t' + '分析式\t\t\t\t' + '剩余输入串\t\t\t' + '所用产生式' + '\n')
+    f.write("%-15s%-35s%-27s%-35s\n" % ('步骤', '分析式', '剩余输入串', '所用产生式'))
+    count = 1
+    while analysis.__eq__('#') + 1 != 2 or remain.__eq__('#') + 1 != 2:  # 都不是#
+        readbook = xlrd.open_workbook('grammerTable.xls')
+        sheet = readbook.sheet_by_name('预测分析表')
         if analysis.__eq__(remain):  # 相等
-            print('接受')
+            print('%c匹配' % analysis)
+            tem = '%c匹配' % analysis
+            f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), tem))
+            count = count + 1
             analysis_formula.remove(analysis)
             remain_string.remove(remain)
             analysis = analysis_formula[-1]
             remain = remain_string[0]
         else:  # 不相等
-            if remain.__eq__('#'):
+            if analysis.__eq__('#'):
                 print('错误')
+                f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), '错误'))
+                count = count + 1
                 break
             else:
+                j = rows.index(remain)
+                i = cols.index(analysis)
+                value = sheet.cell(i, j).value
+                if value == '':
+                    print('错误')
+                    f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), '错误'))
+                    count = count + 1
+                    break
+                tem_ana=analysis
+                analysis_formula.remove(analysis)
+                if value != 'ε':
+                    value = value[::-1]
+                    for item in value:
+                        analysis_formula.append(item)
+                value = value[::-1]
+                value=tem_ana+'->'+value
+                f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), value))
+                count = count + 1
+                analysis = analysis_formula[-1]
+                remain = remain_string[0]
+    if remain.__eq__('#') and analysis.__eq__('#'):
+        f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), '接受'))
+        print('接受')
+    f.close()
