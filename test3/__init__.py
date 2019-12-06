@@ -303,8 +303,8 @@ if __name__ == '__main__':
     print('--------------------------------------------------------------')
     remain_string = []  # 剩余字符串
     analysis_formula = []  # 分析式
-    # st = input("请输入表达式")
-    st = 'i+i*i'
+    st = input("请输入表达式")
+    # st = 'i+i*i'
     for var in st:
         remain_string.append(var)
     remain_string.append('#')
@@ -320,7 +320,7 @@ if __name__ == '__main__':
         readbook = xlrd.open_workbook('grammerTable.xls')
         sheet = readbook.sheet_by_name('预测分析表')
         if analysis.__eq__(remain):  # 相等
-            print('%c匹配' % analysis)
+            # print('%c匹配' % analysis)
             tem = '%c匹配' % analysis
             f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), tem))
             count = count + 1
@@ -359,3 +359,6 @@ if __name__ == '__main__':
         f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), '接受'))
         print('接受')
     f.close()
+    print('表达式分析完成')
+    print('--------------------------------------------------------------')
+
