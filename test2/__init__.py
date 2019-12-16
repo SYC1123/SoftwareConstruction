@@ -108,7 +108,7 @@ if __name__ == '__main__':
         print(ResultPart)
         f.writelines(str(ResultPart))
         f.writelines('\n')
-    print(Result)
+    # print(Result)
     f.close()
     f = open('Identifier.txt', 'w')
     f.writelines(str(Identifier))

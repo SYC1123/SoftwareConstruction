@@ -1,1 +1,1 @@
-['a', 'b', 'c', 'include', 'stdio', 'h', 'main', 'i', 'count', 'j', 'printf', 'd', 'n']
+['include', 'stdio', 'h', 'main', 'i', 'count', 'j', 'printf', 'd', 'n']

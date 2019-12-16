@@ -1,5 +1,3 @@
-a,b="abc123abc123","abc123";
-c="asdfg";
 #include<stdio.h>
 int main()
 {

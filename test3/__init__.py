@@ -5,15 +5,25 @@ import xlwt as xlwt
 
 
 def continue_go(old_size, new_size):
+    '''
+    :param old_size: 旧的字典，字典内的键值对应的值是之前键值包含的次数（比如first（E）中的字符数量）
+    :param new_size: 新的字典，字典内的键值对应的值是之后键值包含的次数（比如first（E）中的字符数量）
+    :return: 如果两次字典内的字符集的个数不同，表示first集或者follow集没求完，返回True继续循环计算，否则返回False
+    '''
     for key in old_size:
         if old_size[key] != new_size[key]:
             # old=new
-            exchange(old_size, new_size)
+            exchange(old_size, new_size)  # 自己写的函数，用于把new_size内容赋值到old_size内，即表示当前的新集合已经变成了下次计算的旧集合
             return True
     return False
 
 
 def has_next(str, index):
+    '''
+    :param str:
+    :param index:
+    :return:
+    '''
     try:
         a = str[index + 1]
         return True
@@ -22,6 +32,12 @@ def has_next(str, index):
 
 
 def exchange(old_size, new_size):
+    '''
+    用于把new_size内容赋值到old_size内，即表示当前的新集合已经变成了下次计算的旧集合
+    :param old_size: 旧集合
+    :param new_size: 新集合
+    :return:
+    '''
     for key in old_size:
         old_size[key] = new_size[key]
 
@@ -86,6 +102,9 @@ if __name__ == '__main__':
     init_set = {}  # 文法规则的初始集合
     temporary_set = {}  # 文法规则的初始集合的临时集合
     ε_set = []  # 能产生ε的符号
+    '''
+    从文件中把文法规则读出来
+    '''
     f = open('grammer.txt')
     for line in f.readlines():
         line = line.strip('\n')
@@ -96,8 +115,11 @@ if __name__ == '__main__':
     该位置可以看文法规则
     '''
     # print(grammar_rules)
-    # 初始化文法规则的初始集合
+    '''
+    初始化文法规则的初始集合，集合都是字典，含义是每个(字符:列表)
+    '''
     for item in grammar_rules:
+        # 对以上所有的集合进行初始化
         if item[:item.index('-')] not in init_set.keys():
             init_set[item[:item.index('-')]] = [item[item.index('>') + 1:]]
             temporary_set[item[:item.index('-')]] = [item[item.index('>') + 1:]]
@@ -107,7 +129,7 @@ if __name__ == '__main__':
             old_follow_size[item[:item.index('-')]] = 0
             new_follow_size[item[:item.index('-')]] = 1
             follow[item[:item.index('-')]] = []
-            if item[:item.index('-')] == 'E':
+            if item[:item.index('-')] == 'E':  # 初始化follow集时，如果有起始符号E，则把#加进去
                 follow['E'].append('#')
         else:
             init_set[item[:item.index('-')]].append(item[item.index('>') + 1:])
@@ -117,30 +139,33 @@ if __name__ == '__main__':
     该位置可以看文法规则的初始集合
     '''
     print(init_set)
-    # 构造空集的临时表，用于计算后续的空集
-    for item in init_set:
+    # 构造空集的临时表，用于计算后续的空集,遍历文法规则的初始集合，使用的是键值遍历,如果该键值的对应的文法有空，则把其添加到空集的临时表，
+    # 但是该表不代表最终的空集符号集，比如C->AB,A,B都能推出空，但是临时表内没有C
+    for item in init_set.keys():
         if 'ε' in init_set[item]:
-            ε_set.append(item)
-            del temporary_set[item]
+            ε_set.append(item)  # 把能直接推出空的字符添加到空集中
+            del temporary_set[item]  # 把能推出空的字符从temporary_set字典中移除
     '''
     该位置可以看文法规则的初始集合的临时集合，能产生ε的符号
     '''
     # print(temporary_set)
     # print(ε_set)
-    # 计算能推出空集的符号集
+    '''
+    计算能推出空集的符号集
+    '''
     a = True
-    while True:
+    while True:  # 做一个死循环，如果推出新的空集符号，则继续循环
         if a:
             a = False
-            for item in ε_set:  # 产生空的符号
-                for key in temporary_set.keys():  # 临时集的键
-                    for i in range(0, len(temporary_set[key])):  # 遍历字典键值对应的value即为字符串
-                        if item in temporary_set[key][i]:
+            for item in ε_set:  # 遍历此时产生空的符号集
+                for key in temporary_set.keys():  # 遍历临时空符号集的键
+                    for i in range(0, len(temporary_set[key])):  # 遍历字典键值对应的value即为字符串（例如：A——>BC,遍历的是A键值下对应的BC字符串）
+                        if item in temporary_set[key][i]:  # 如果此时空集里面的符号在该字符串内
                             temporary_set[key][i] = temporary_set[key][i].replace(item, '')  # 把该符号去掉
-                            if temporary_set[key][i] == '':
+                            if temporary_set[key][i] == '':  # 经过遍历之后，如果该串经过去除推出空集的符号后，变成了空串，
+                                # 则表示该串也能推出空，把键值添加到空集中（该方法处理的就是形如A->BC 这种产生式）
                                 a = True
                                 ε_set.append(item)
-                                # del temporary_set[key]
         else:
             break
     '''
@@ -151,49 +176,53 @@ if __name__ == '__main__':
     保存好文法规则的初始集合用于计算follow集、select集
     '''
     follow_init_set = {}
-    follow_init_set = deepcopy(init_set)
+    follow_init_set = deepcopy(init_set)  # 调用深复制方法，复制一个一模一样的文法初始集合
     select_init_set = {}
-    select_init_set = deepcopy(init_set)
-
-    for key in init_set:
+    select_init_set = deepcopy(init_set)  # 调用深复制方法，复制一个一模一样的文法初始集合
+    '''
+    初始化第一次的first集
+    '''
+    for key in init_set.keys():
         for value in init_set[key]:
-            if value[0].isupper():
+            if value[0].isupper():  # 如果开头是大写字符，即非终结符，则不处理
                 a = None
-            else:
+            else:  # 如果开头是终极字符，则添加到该符号的first集中
                 first[key].append(value[0])
-                new_first_size[key] = new_first_size[key] + 1
+                new_first_size[key] = new_first_size[key] + 1  # 用于统计每个符号first集中各个符号的个数
     # print(first)
+    '''
     # 计算first集
-    while continue_go(old_first_size, new_first_size):
+    '''
+    while continue_go(old_first_size, new_first_size):  # 上文中自己写的函，如果两次字典内的字符集的个数不同，即表示first集没求完，继续循环
         # 下面操作new_first_size
-        for key in init_set.keys():
-            for index in range(0, len(init_set[key])):  # 下标
+        for key in init_set.keys():  # 首先遍历文法集合的产生式左部
+            for index in range(0, len(init_set[key])):  # 遍历每个左部推导的右部的内容，用一个index下标遍历每个字符串
                 if init_set[key][index][0].isupper():
-                    # 非终结符
+                    # 产生式右部开头是非终结符
                     if init_set[key][index][0] in ε_set:
-                        # 开头的非终结符能推出空
-                        first[key] = first[key] + first[init_set[key][index][0]]
-                        first[key] = list(set(first[key]))
-                        new_first_size[key] = len(first[key])
-                        if len(init_set[key][index]) == 1:
+                        # 产生式右部开头的非终结符能推出空
+                        first[key] = first[key] + first[init_set[key][index][0]]  # 当前的first集要加上该非终结符的first集
+                        first[key] = list(set(first[key]))  # 去重
+                        new_first_size[key] = len(first[key])  # 更新first集个数
+                        if len(init_set[key][index]) == 1:  # 如果产生式右部的字符串长度为一（比如A->B）
+                            # 把该符号产生式右部变成'ε'，这么做的目的是下次循环遍历到该产生式时，直接添加'ε'，最后一去重，仍只有一个'ε'
+                            # ，就不需要进到该判断式进行这么复杂的计算了
                             s = list(init_set[key][index])
                             s[0] = 'ε'
                             init_set[key][index] = ''.join(s)
                         else:
+                            # 长度不为一，则把产生式右部第一个字符去掉
                             init_set[key][index] = init_set[key][index].lstrip(init_set[key][index][0])
-                            # print(init_set[key][index])
                     else:
                         # 开头的非终结符不能推出空
-                        first[key] = first[key] + first[init_set[key][index][0]]
-                        first[key] = list(set(first[key]))
-                        new_first_size[key] = len(first[key])
+                        first[key] = first[key] + first[init_set[key][index][0]]  # 当前的first集要加上该非终结符的first集
+                        first[key] = list(set(first[key]))  # 去重
+                        new_first_size[key] = len(first[key])  # 更新first集个数
                 else:
-                    # 终结符
-                    first[key].append(init_set[key][index][0])
-                    first[key] = list(set(first[key]))
-                    new_first_size[key] = len(first[key])
-            # print(value, end=" ")
-            # print()
+                    # 产生式右部开头是终结符
+                    first[key].append(init_set[key][index][0])  # 直接把该符号添加到first集中
+                    first[key] = list(set(first[key]))  # 去重
+                    new_first_size[key] = len(first[key])  # 更新first集个数
     '''
     最终first集
     '''
@@ -207,18 +236,28 @@ if __name__ == '__main__':
     '''
     # print(follow_init_set)
     # print(follow)
-    while continue_go(old_follow_size, new_follow_size):
-        for p in range(0, 2):
-            for key in follow_init_set:  # 计算key的follow集
-                for value in follow_init_set[key]:
-                    for k in follow_init_set:
-                        for i in range(0, len(follow_init_set[k])):
-                            index = follow_init_set[k][i].find(key)
-                            if index != -1:
-                                if has_next(follow_init_set[k][i], index):  # 查找的字符后面有follow
-                                    index = index + 1
-                                    var = follow_init_set[k][i][index]
-                                    if var.isupper():  # 非终结符
+    while continue_go(old_follow_size, new_follow_size):  # 上文中自己写的函，如果两次字典内的字符集的个数不同，即表示follow集没求完，继续循环
+        for key in follow_init_set:  # 计算key的follow集
+            for value in follow_init_set[key]:
+                for k in follow_init_set:
+                    for i in range(0, len(follow_init_set[k])):
+                        index = follow_init_set[k][i].find(key)
+                        if index != -1:
+                            if has_next(follow_init_set[k][i], index):  # 查找的字符后面有follow
+                                index = index + 1
+                                var = follow_init_set[k][i][index]
+                                if var.isupper():  # 非终结符
+                                    follow[key] = follow[key] + first[var]
+                                    follow[key] = list(set(follow[key]))
+                                    new_follow_size[key] = len(follow[key])
+                                    if var in ε_set and has_next(follow_init_set[k][i], index) == False:
+                                        follow[key] = follow[key] + follow[k]
+                                        follow[key] = list(set(follow[key]))
+                                        new_follow_size[key] = len(follow[key])
+                                    while var in ε_set and has_next(follow_init_set[k][i],
+                                                                    index):  # 把后面非空的follow全加进去
+                                        index = index + 1
+                                        var = follow_init_set[k][i][index]
                                         follow[key] = follow[key] + first[var]
                                         follow[key] = list(set(follow[key]))
                                         new_follow_size[key] = len(follow[key])
@@ -226,28 +265,16 @@ if __name__ == '__main__':
                                             follow[key] = follow[key] + follow[k]
                                             follow[key] = list(set(follow[key]))
                                             new_follow_size[key] = len(follow[key])
-                                        while var in ε_set and has_next(follow_init_set[k][i],
-                                                                        index):  # 把后面非空的follow全加进去
-                                            index = index + 1
-                                            var = follow_init_set[k][i][index]
-                                            follow[key] = follow[key] + first[var]
-                                            follow[key] = list(set(follow[key]))
-                                            new_follow_size[key] = len(follow[key])
-                                            if var in ε_set and has_next(follow_init_set[k][i], index) == False:
-                                                follow[key] = follow[key] + follow[k]
-                                                follow[key] = list(set(follow[key]))
-                                                new_follow_size[key] = len(follow[key])
-                                            # follow_init_set[k][i] = follow_init_set[k][i].replace(var, '')  # 把该符号去掉
-                                    else:  # 终结符
-                                        if var not in follow[key]:
-                                            follow[key].append(var)
-                                            new_follow_size[key] = len(follow[key])
-                                else:
-                                    follow[key] = follow[key] + follow[k]
-                                    follow[key] = list(set(follow[key]))
-                                    # print(key, k, follow[key], follow[k])
-                                    new_follow_size[key] = len(follow[key])
-            # print(follow_init_set)
+                                else:  # 终结符
+                                    if var not in follow[key]:
+                                        follow[key].append(var)
+                                        new_follow_size[key] = len(follow[key])
+                            else:
+                                follow[key] = follow[key] + follow[k]
+                                follow[key] = list(set(follow[key]))
+                                # print(key, k, follow[key], follow[k])
+                                new_follow_size[key] = len(follow[key])
+        # print(follow_init_set)
     for key in follow:
         for item in follow[key]:
             if 'ε' in item:
@@ -343,14 +370,14 @@ if __name__ == '__main__':
                     f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), '错误'))
                     count = count + 1
                     break
-                tem_ana=analysis
+                tem_ana = analysis
                 analysis_formula.remove(analysis)
                 if value != 'ε':
                     value = value[::-1]
                     for item in value:
                         analysis_formula.append(item)
                 value = value[::-1]
-                value=tem_ana+'->'+value
+                value = tem_ana + '->' + value
                 f.write("%-15d%-35s%-35s%-35s\n" % (count, str(analysis_formula), str(remain_string), value))
                 count = count + 1
                 analysis = analysis_formula[-1]
@@ -361,4 +388,3 @@ if __name__ == '__main__':
     f.close()
     print('表达式分析完成')
     print('--------------------------------------------------------------')
-
